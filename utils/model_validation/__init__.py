@@ -28,4 +28,17 @@ class CrossValidationPipeline:
             date_params (PipelineDateParams): Parameter tuple containing
                 parameters to use when cross validating.
         """
-        self.date_parameters = date_params
+        self.date_parameters = self.calculate_date_folds(date_params)
+
+    @staticmethod
+    def calculate_date_folds(date_params: PipelineDateParams) -> dict:
+        """Calculates the date folds based on
+
+        Args:
+            date_params (PipelineDateParams): Parameters to use to calculate
+                dates required.
+
+        Returns:
+            Dictionary containing train_end and test_end for each fold.
+        """
+        pass
