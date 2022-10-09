@@ -1,2 +1,2 @@
 # cabPricePredictions
-Predicting fares over time.
+Using machine learning to predict the price of cab journeys over time.
