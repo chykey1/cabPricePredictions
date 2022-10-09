@@ -17,3 +17,15 @@ class PipelineDateParams(NamedTuple):
     start_date: Union[str, datetime.datetime]
     period: str
     folds: int
+
+
+class CrossValidationPipeline:
+    def __init__(self, date_params: PipelineDateParams):
+        """Performs rolling cross validation over dates with a given custom
+        model class and hyperparameters.
+
+        Args:
+            date_params (PipelineDateParams): Parameter tuple containing
+                parameters to use when cross validating.
+        """
+        self.date_parameters = date_params
