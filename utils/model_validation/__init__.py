@@ -83,18 +83,18 @@ class CrossValidationPipeline:
         """
 
         for fold in self.date_parameters.keys():
-            train = data_frame[
+            train_frame = data_frame[
                 data_frame.index < self.date_parameters[fold]["train_end"]
             ]
-            test = data_frame[
+            test_frame = data_frame[
                 (data_frame.index >= self.date_parameters[fold]["train_end"])
                 & (data_frame.index < self.date_parameters[fold]["test_end"])
             ]
 
             model = model_instance(model_parameters)
-            model = model.train(train)
+            model = model.train(train_frame)
 
-            test_predictions = model.predict(test)
+            test_predictions = model.predict(test_frame)
 
             self.results[fold] = {
                 "test_predictions": test_predictions,
