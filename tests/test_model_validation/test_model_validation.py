@@ -33,18 +33,9 @@ def test_calculate_date_params(
         folds=10,
     )
 
-    test_validation_pipeline.calculate_date_folds(date_params=fold_params)
-
-    date_folds = {
-        "fold_1": {
-            "train_end": datetime.datetime(2022, 1, 1, 8, 0, 0),
-            "test_end": datetime.datetime(2022, 1, 1, 9, 0, 0),
-        },
-        "fold_2": {
-            "train_end": datetime.datetime(2022, 1, 1, 9, 0, 0),
-            "test_end": datetime.datetime(2022, 1, 1, 10, 0, 0),
-        },
-    }
+    date_folds = test_validation_pipeline.calculate_date_folds(
+        date_params=fold_params
+    )
 
     for fold in date_folds.values():
         assert isinstance(fold, dict)
