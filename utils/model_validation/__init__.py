@@ -2,6 +2,7 @@
 import datetime
 from typing import NamedTuple
 
+import pandas as pd
 from dateutil.relativedelta import relativedelta
 
 
@@ -39,7 +40,6 @@ class CrossValidationPipeline:
         Args:
             date_params (PipelineDateParams): Parameters to use to calculate
                 dates required.
-
         Returns:
             Dictionary containing train_end and test_end for each fold.
         """
@@ -60,3 +60,45 @@ class CrossValidationPipeline:
             }
 
         return date_folds
+
+    def run_pipeline(
+        self,
+        data_frame: pd.DataFrame,
+        model_instance: callable,
+        model_parameters: NamedTuple,
+    ) -> dict:
+        """For each fold in the pipelines `date_parameters` method will run
+        `model_instance` with `model_parameters` on the train and test splits.
+
+        Args:
+            data_frame (pd.DataFrame): pd.DataFrame to run cross validation
+                pipeline over.
+            model_instance (callable): Callable model object with fit and
+                predict methods.
+            model_parameters (NamedTuple): Named tuple containing model
+                instances hyperparameters.
+        Returns:
+            A dictionary containing train and test predictions for each fold.
+        """
+
+        results = dict()
+
+        for fold in self.date_parameters.keys():
+            train = data_frame[
+                data_frame.index < self.date_parameters[fold]["train_end"]
+            ]
+            test = data_frame[
+                (data_frame.index >= self.date_parameters[fold]["train_end"])
+                & (data_frame.index < self.date_parameters[fold]["test_end"])
+            ]
+
+            model = model_instance(model_parameters)
+            model = model.train(train)
+
+            test_predictions = model.predict(test)
+
+            results[fold] = {
+                "test_mae": test_predictions,
+            }
+
+        return results
