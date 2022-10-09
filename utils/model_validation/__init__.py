@@ -24,18 +24,19 @@ class PipelineDateParams(NamedTuple):
 
 class CrossValidationPipeline:
     def __init__(self, date_params: PipelineDateParams):
-        """Performs rolling cross validation over dates with a given custom
-        model class and hyperparameters.
+        """Rolling validation over dates for a given custom model class and
+            hyperparameters.
 
         Args:
             date_params (PipelineDateParams): Parameter tuple containing
                 parameters to use when cross validating.
         """
         self.date_parameters = self.calculate_date_folds(date_params)
+        self.results = dict()
 
     @staticmethod
     def calculate_date_folds(date_params: PipelineDateParams) -> dict:
-        """Calculates the date folds based on
+        """Calculates the date folds based on the pipelines
 
         Args:
             date_params (PipelineDateParams): Parameters to use to calculate
@@ -61,14 +62,14 @@ class CrossValidationPipeline:
 
         return date_folds
 
-    def run_pipeline(
+    def fit_evaluate(
         self,
         data_frame: pd.DataFrame,
         model_instance: callable,
         model_parameters: NamedTuple,
-    ) -> dict:
-        """For each fold in the pipelines `date_parameters` method will run
-        `model_instance` with `model_parameters` on the train and test splits.
+    ) -> pd.DataFrame:
+        """Running `model_instance` on the train and test splits for each fold
+            in the pipelines `date_parameters` method with `model_parameters`.
 
         Args:
             data_frame (pd.DataFrame): pd.DataFrame to run cross validation
@@ -78,10 +79,8 @@ class CrossValidationPipeline:
             model_parameters (NamedTuple): Named tuple containing model
                 instances hyperparameters.
         Returns:
-            A dictionary containing train and test predictions for each fold.
+            A pd.DataFrame containing train and test predictions for each fold.
         """
-
-        results = dict()
 
         for fold in self.date_parameters.keys():
             train = data_frame[
@@ -97,8 +96,26 @@ class CrossValidationPipeline:
 
             test_predictions = model.predict(test)
 
-            results[fold] = {
-                "test_mae": test_predictions,
+            self.results[fold] = {
+                "test_predictions": test_predictions,
             }
 
-        return results
+        return self.evaluate_results(data_frame=data_frame)
+
+    def evaluate_results(self, data_frame: pd.DataFrame) -> pd.DataFrame:
+        """Appending dictionary of predictions for each fold to test dataset.
+
+        Args:
+            data_frame (pd.DataFrame): Dataframe containing.
+        Returns:
+            Dataframe containing full test set across folds with predictions
+                appended.
+        """
+        data_frame = data_frame.copy()
+
+        full_predictions = pd.concat(self.results)
+        test_start = self.date_parameters.values()[0]["test_start"]
+
+        data_frame[data_frame.index >= test_start] = full_predictions
+
+        return data_frame
